@@ -1,0 +1,76 @@
+version: '3.8'
+services:
+  elasticsearch01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.4
+    container_name: myelasticsearch01
+    environment:
+      - "discovery.type=single-node"
+      #- ELASTIC_PASSWORD=mypassword
+      #- ES_JAVA_OPTS="-Xmx1g -Xms1g"
+    restart: on-failure
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - type: bind
+        source: ./elasticsearch/config/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/plugins:/usr/share/elasticsearch/plugins
+    networks:
+      - elknetwrok
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.4
+    container_name: mykibana
+    environment:
+      - "ELASTICSEARCH_HOSTS=http://myelasticsearch01:9200"
+    ports:
+      - 5601:5601
+    networks:
+      - elknetwrok
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.17.4
+    container_name: mylogstash
+    ports:
+      - 5044:5044
+      - 9600:9600
+    volumes:
+      - type: bind
+        source: ./logstash/pipeline/logstash.conf
+        target: /usr/share/logstash/pipeline/logstash.conf
+    networks:
+      - elknetwrok
+
+  nginx:
+    image: nginx:latest
+    container_name: mynginx
+    ports:
+      - 7414:80
+    volumes:
+      - ./nginx/log/nginx:/var/log/nginx
+      #- ./conf.d:/etc/nginx/conf.d
+    networks:
+      - elknetwrok
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.17.4
+    container_name: myfilebeat
+    entrypoint: "filebeat -e -strict.perms=false"
+    volumes:
+      - type: bind
+        source: ./filebeat/config/filebeat.yml
+        target: /usr/share/filebeat/filebeat.yml
+      - ./nginx/log/nginx:/var/log/nginx
+    networks:
+      - elknetwrok
+    depends_on:
+      - elasticsearch
+      - logstash
+      - kibana
+      - nginx
+
+networks:
+  elknetwrok:
+    name: elknetwrok

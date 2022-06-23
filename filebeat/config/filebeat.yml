@@ -1,0 +1,14 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /var/log/nginx/*.log
+
+output.logstash:
+  enabled: true
+  hosts: ["mylogstash:5044"]
+  # FIXME: Cannot reach the hosts of Logstash
+
+setup.kibana:
+  host: "http://mykibana:5601"
+

@@ -1,14 +1,13 @@
-filebeat.inputs:
-- type: log
-  enabled: true
-  paths:
-    - /var/log/nginx/*.log
+filebeat.config:
+  modules:
+    path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
 
-output.logstash:
-  enabled: true
-  hosts: ["mylogstash:5044"]
-  # FIXME: Cannot reach the hosts of Logstash
+processors:
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
 
-setup.kibana:
-  host: "http://mykibana:5601"
-
+output.elasticsearch:
+  hosts: '${ELASTICSEARCH_HOSTS:elasticsearch:9200}'
+  username: '${ELASTICSEARCH_USERNAME:}'
+  password: '${ELASTICSEARCH_PASSWORD:}'

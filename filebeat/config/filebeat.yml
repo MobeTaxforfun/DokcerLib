@@ -1,13 +1,44 @@
+# ============================== Filebeat modules ==============================
 filebeat.config:
   modules:
     path: ${path.config}/modules.d/*.yml
     reload.enabled: false
 
+filebeat.modules:
+- module: nginx
+  access:
+    enabled: true
+    var.paths: ['/var/log/nginx']
+  error:
+    enabled: false
+    var.paths: ["/var/log/nginx/error.log"]
+
+# ================================== Iutputs ===================================
+
+# ======================= Elasticsearch template setting =======================
+
+setup.template.settings:
+  index.number_of_shards: 1
+  #index.codec: best_compression
+  #_source.enabled: false
+
+# ================================= Processors =================================
+
 processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
   - add_cloud_metadata: ~
   - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
 
-output.elasticsearch:
-  hosts: '${ELASTICSEARCH_HOSTS:elasticsearch:9200}'
-  username: '${ELASTICSEARCH_USERNAME:}'
-  password: '${ELASTICSEARCH_PASSWORD:}'
+# ================================== Outputs ===================================
+
+# Configure what output to use when sending the data collected by the beat.
+
+# ---------------------------- Elasticsearch Output ----------------------------
+
+# output.elasticsearch:
+#   hosts: ["http://myelasticsearch01:9200/"]
+
+output.logstash:
+  hosts: ["mylogstash:5044"]

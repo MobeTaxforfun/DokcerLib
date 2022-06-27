@@ -18,15 +18,19 @@ services:
     networks:
       - elknetwrok
 
-  # kibana:
-  #   image: docker.elastic.co/kibana/kibana:7.17.0
-  #   container_name: mykibana
-  #   environment:
-  #     - "ELASTICSEARCH_HOSTS=http://myelasticsearch01:9200"
-  #   ports:
-  #     - 5601:5601
-  #   networks:
-  #     - elknetwrok
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.1
+    container_name: mykibana
+    environment:
+      - "ELASTICSEARCH_HOSTS=http://myelasticsearch01:9200"
+    ports:
+      - 5601:5601
+    volumes:
+        - type: bind
+          source: ./kibana/config/kibana.yml
+          target: /usr/share/kibana/config/kibana.yml
+    networks:
+      - elknetwrok
 
   logstash:
     image: docker.elastic.co/logstash/logstash:7.17.1
